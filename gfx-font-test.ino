@@ -33,6 +33,7 @@ unsigned long Utils::lastPrintln = 0;
 
 const int COLOR_WHITE = 0x65535;
 const int COLOR_BLACK = 0x0;
+const int COLOR_RED = 0xF800;
 #include "Arduino_GigaDisplay_GFX.h"
 #include "Fonts/FreeSans18pt7b.h"
 
@@ -113,25 +114,36 @@ class OLEDWrapper {
       Utils::publish(s);
     }
     void oneFontTest(const GFXfont* font, String fontName) {
-      int16_t x1;
-      int16_t y1;
+      int16_t x;
+      int16_t y;
       uint16_t w;
       uint16_t h;
 
       clear();
       setFont(font);
       display_.setTextSize(1);
-      display_.getTextBounds(fontName, 0, 0, &x1, &y1, &w, &h);
+      display_.getTextBounds(fontName, 0, 0, &x, &y, &w, &h);
+      if (y < 0) {
+        y = 0;
+      }
+      fillRectWH(x, y, w, h, COLOR_RED);
       String s(fontName);
+      s.concat("\n");
+      s.concat("x: ");
+      s.concat(x);
+      s.concat(", y: ");
+      s.concat(y);
       s.concat(", w: ");
       s.concat(w);
       s.concat(", h: ");
       s.concat(h);
-      display(s, font, 1, 10, 100);
+      display(s, font, 1, 0, h);
       Utils::waitForSerial(s);
     }
     void fontTest() {
       oneFontTest(&FreeSans18pt7b, "FreeSans18pt7b");
+      oneFontTest(&FreeSans18pt7b, "acemnorsuvwxz");
+      oneFontTest(&FreeSans18pt7b, "abcdefghijklmnopqrstuvwxyz");
       setFont(nullptr);
     }
 };
