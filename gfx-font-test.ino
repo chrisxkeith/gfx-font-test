@@ -114,7 +114,7 @@ class OLEDWrapper {
       s.concat(getWidth());
       Utils::publish(s);
     }
-    void oneFontTest(const GFXfont* font, String fontName) {
+    void oneFontTest(const GFXfont* font, String fontName, bool doDisplay) {
       int16_t x;
       int16_t y;
       uint16_t w;
@@ -128,9 +128,15 @@ class OLEDWrapper {
       if (modifiedY < 0) {
         modifiedY = 0;
       }
-      fillRectWH(x, modifiedY, w, h, COLOR_RED);
+      if (doDisplay) {
+        fillRectWH(x, modifiedY, w, h, COLOR_RED);
+      }
       String s(fontName);
-      s.concat("\n");
+      if (doDisplay) {
+        s.concat("\n");
+      } else {
+        s.concat(" : ");
+      }
       s.concat("x: ");
       s.concat(x);
       s.concat(", y: ");
@@ -141,14 +147,23 @@ class OLEDWrapper {
       s.concat(h);
       s.concat(", modifiedY: ");
       s.concat(modifiedY);
-      display(s, font, 1, 0, h);
+      if (doDisplay) {
+        display(s, font, 1, 0, h);
+        delay(5000);
+      }
       Utils::publish(s);
-      delay(10000);
     }
     void fontTest() {
-      oneFontTest(&FreeSans18pt7b, "FreeSans18pt7b");
-      oneFontTest(&FreeSans18pt7b, "acemnorsuvwxz");
-      oneFontTest(&FreeSans18pt7b, "abcdefghijklmnopqrstuvwxyz");
+      oneFontTest(&FreeSans18pt7b, "FreeSans18pt7b", true);
+      oneFontTest(&FreeSans18pt7b, "acemnorsuvwxz", true);
+      oneFontTest(&FreeSans18pt7b, "abcdefghijklmnopqrstuvwxyz", true);
+      for (int i = 0; i < 10; i++) {
+        char buf[100];
+        int ii = i * 10 + i;
+        sprintf(buf, "%02u:%02u:%02u", ii, ii, ii);
+        String s(buf);
+        oneFontTest(&FreeSans18pt7b, s, false);
+      }
       setFont(nullptr);
     }
 };
