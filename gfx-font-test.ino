@@ -8,6 +8,7 @@ class Utils {
         delay(1000);
       }
       Serial.println(s);
+      lastPrintln = millis();
     }
     static void waitForSerial(String s) {
         delay(1000);
@@ -123,10 +124,11 @@ class OLEDWrapper {
       setFont(font);
       display_.setTextSize(1);
       display_.getTextBounds(fontName, 0, 0, &x, &y, &w, &h);
-      if (y < 0) {
-        y = 0;
+      int16_t modifiedY = y;
+      if (modifiedY < 0) {
+        modifiedY = 0;
       }
-      fillRectWH(x, y, w, h, COLOR_RED);
+      fillRectWH(x, modifiedY, w, h, COLOR_RED);
       String s(fontName);
       s.concat("\n");
       s.concat("x: ");
@@ -137,8 +139,11 @@ class OLEDWrapper {
       s.concat(w);
       s.concat(", h: ");
       s.concat(h);
+      s.concat(", modifiedY: ");
+      s.concat(modifiedY);
       display(s, font, 1, 0, h);
-      Utils::waitForSerial(s);
+      Utils::publish(s);
+      delay(10000);
     }
     void fontTest() {
       oneFontTest(&FreeSans18pt7b, "FreeSans18pt7b");
