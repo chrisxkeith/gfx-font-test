@@ -154,9 +154,25 @@ class OLEDWrapper {
       Utils::publish(s);
     }
     void fontTest() {
-      oneFontTest(&FreeSans18pt7b, "FreeSans18pt7b", true);
+/*      oneFontTest(&FreeSans18pt7b, "FreeSans18pt7b", true);
       oneFontTest(&FreeSans18pt7b, "acemnorsuvwxz", true);
       oneFontTest(&FreeSans18pt7b, "abcdefghijklmnopqrstuvwxyz", true);
+*/      clear();
+      int baseline = 0;
+      for (int i = 0; i < 12; i++) {
+        String s(i);
+        int16_t x;
+        int16_t y;
+        uint16_t w;
+        uint16_t h;
+        getTextBoundsWH(s, &FreeSans18pt7b, 1, 0, 0, &x, &y, &w, &h);
+        baseline += h + 4;
+        s.concat(": baseline: ");
+        s.concat(baseline);
+        display(s, &FreeSans18pt7b, 1, 0, baseline);
+      }
+      delay(5000);
+      clear();
       for (int i = 0; i < 10; i++) {
         char buf[100];
         int ii = i * 10 + i;
