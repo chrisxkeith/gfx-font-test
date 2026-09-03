@@ -153,49 +153,22 @@ class OLEDWrapper {
       }
       Utils::publish(s);
     }
-    void verticalFontTest() {
-/*      oneFontTest(&FreeSans18pt7b, "FreeSans18pt7b", true);
-      oneFontTest(&FreeSans18pt7b, "acemnorsuvwxz", true);
-      oneFontTest(&FreeSans18pt7b, "abcdefghijklmnopqrstuvwxyz", true);
-*/      clear();
-      int baseline = 0;
-      for (int i = 0; i < 12; i++) {
-        String s(i);
-        int16_t x;
-        int16_t y;
-        uint16_t w;
-        uint16_t h;
-        getTextBoundsWH(s, &FreeSans18pt7b, 1, 0, 0, &x, &y, &w, &h);
-        baseline += h + 4;
-        s.concat(": baseline: ");
-        s.concat(baseline);
-        display(s, &FreeSans18pt7b, 1, 0, baseline);
-      }
-      delay(5000);
+    void verticalFontTest(int start, int finish) {
       clear();
-/*      for (int i = 0; i < 10; i++) {
-        char buf[100];
-        int ii = i * 10 + i;
-        sprintf(buf, "%02u:%02u:%02u", ii, ii, ii);
-        String s(buf);
-        oneFontTest(&FreeSans18pt7b, s, false);
+      for (int y = start; y <= finish; y++) {
+        String s(y);
+        display(s, &FreeSans18pt7b, 1, 0, y);
+        delay(5000);
       }
-*/      setFont(nullptr);
+      clear();
     }
-    void horizontalFontTest() {
+    void horizontalFontTest(int start, int finish) {
       clear();
-      int baseline = 0;
-      for (int i = 0; i < 30; i++) {
-        String s(i);
-        int16_t x;
-        int16_t y;
-        uint16_t w;
-        uint16_t h;
-        getTextBoundsWH(s, &FreeSans18pt7b, 1, 0, 0, &x, &y, &w, &h);
-        baseline += h + 4;
-        display(s, &FreeSans18pt7b, 1, i * 20, baseline);
+      for (int x = start; x <= finish; x++) {
+        String s(x);
+        display(s, &FreeSans18pt7b, 1, x, 40);
+        delay(5000);
       }
-      delay(5000);
       clear();
     }
 };
@@ -210,6 +183,6 @@ void setup() {
 }
 
 void loop() {
-	oledWrapper->verticalFontTest();
-	oledWrapper->horizontalFontTest();
+	oledWrapper->verticalFontTest(255, 256);
+	oledWrapper->horizontalFontTest(255, 256);
 }
