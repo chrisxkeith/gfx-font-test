@@ -133,18 +133,22 @@ class OLEDWrapper {
       }
       clear();
     }
-    void oneFontTestFixed(const GFXfont* font, String str, int textSize) {
-      clear();
+    void getTextBox(const GFXfont* font, String str, int textSize, int16_t* x, int16_t* y, uint16_t* w, uint16_t* h) {
       display_.setFont(font);
       display_.setTextSize(textSize);
+      display_.getTextBounds(str, 0, 0, x, y, w, h);
+      // Does NOT include descenders. :(
+    }
+    void oneFontTestFixed(const GFXfont* font, String str, int textSize) {
+      clear();
 
       int16_t   x;
       int16_t   y;
       uint16_t  w;
       uint16_t  h;
 
-      display_.getTextBounds(str, 0, 0, &x, &y, &w, &h);
-      fillRectWH(x, y > 0 ? y : -y, w, h, COLOR_RED);
+      getTextBox(font, str, textSize, &x, &y, &w, &h);
+      display_.fillRect(x, 0, w < getWidth() ? w : getWidth(), y > 0 ? y : -y, COLOR_RED);
 
       String msg(str);
       msg.concat(", ");
@@ -156,32 +160,31 @@ class OLEDWrapper {
       msg.concat(w);
       msg.concat(", h:");
       msg.concat(h);
-      display(msg, font, 1, x, y > 0 ? y : -y);
+      display_.setCursor(x, y > 0 ? y : -y);
+      display_.print(msg);
       Utils::publish(msg);
    }
     void oneFontTest(const GFXfont* font, String str, int textSize) {
       oneFontTestFixed(font, str, textSize);
       delay(5000);
    }
-   bool didRun = false;
-   void singleTest() {
-      if (!didRun) {
-        didRun = true;
-        oneFontTestFixed(&FreeSans24pt7b, "FreeSans24pt7b", 1);
-      }
-   }
    void boundsTests() {
-     for (int i = 0; i < 4; i++) {
-       oneFontTest(&FreeSans24pt7b, "FreeSans24pt7b", i + 1);
-     }
-     for (int i = 0; i < 4; i++) {
-       oneFontTest(&FreeSans24pt7b, "AghyZ", i + 1);
-     }
+     oneFontTest(&FreeSans24pt7b, "FreeSans24pt7b", 1);
+     uint16_t   lastWidth = 0;
      for (int i = 0; i < 9; i++) {
-       oneFontTest(&FreeSans24pt7b, String(i), 3);
-     }
-   }
+      int16_t   x;
+      int16_t   y;
+      uint16_t  w;
+      uint16_t  h;
 
+      getTextBox(&FreeSans24pt7b, String(i), 1, &x, &y, &w, &h);
+      if ((lastWidth != 0) && (lastWidth != w)) {
+        oneFontTest(&FreeSans24pt7b, String("digits not fixed width"), 1);
+        return;
+      }
+      lastWidth = w;
+    }
+  }
 };
 OLEDWrapper* oledWrapper = nullptr;
 
@@ -194,5 +197,5 @@ void setup() {
 }
 
 void loop() {
-	oledWrapper->singleTest();
+	oledWrapper->boundsTests();
 }
