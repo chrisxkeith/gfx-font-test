@@ -37,6 +37,7 @@ const int COLOR_BLACK = 0x0;
 const int COLOR_RED = 0xF800;
 #include "Arduino_GigaDisplay_GFX.h"
 #include "Fonts/FreeSans18pt7b.h"
+#include "Fonts/FreeSans24pt7b.h"
 
 GigaDisplay_GFX display_;
 
@@ -114,45 +115,6 @@ class OLEDWrapper {
       s.concat(getWidth());
       Utils::publish(s);
     }
-    void oneFontTest(const GFXfont* font, String fontName, bool doDisplay) {
-      int16_t x;
-      int16_t y;
-      uint16_t w;
-      uint16_t h;
-
-      clear();
-      setFont(font);
-      display_.setTextSize(1);
-      display_.getTextBounds(fontName, 0, 0, &x, &y, &w, &h);
-      int16_t modifiedY = y;
-      if (modifiedY < 0) {
-        modifiedY = 0;
-      }
-      if (doDisplay) {
-        fillRectWH(x, modifiedY, w, h, COLOR_RED);
-      }
-      String s(fontName);
-      if (doDisplay) {
-        s.concat("\n");
-      } else {
-        s.concat(" : ");
-      }
-      s.concat("x: ");
-      s.concat(x);
-      s.concat(", y: ");
-      s.concat(y);
-      s.concat(", w: ");
-      s.concat(w);
-      s.concat(", h: ");
-      s.concat(h);
-      s.concat(", modifiedY: ");
-      s.concat(modifiedY);
-      if (doDisplay) {
-        display(s, font, 1, 0, h);
-        delay(5000);
-      }
-      Utils::publish(s);
-    }
     void verticalFontTest(int start, int finish) {
       clear();
       for (int y = start; y <= finish; y++) {
@@ -171,6 +133,45 @@ class OLEDWrapper {
       }
       clear();
     }
+    void oneFontTest(const GFXfont* font, String str, int textSize) {
+      clear();
+      display_.setFont(font);
+      display_.setTextSize(textSize);
+
+      int16_t   x;
+      int16_t   y;
+      uint16_t  w;
+      uint16_t  h;
+
+      display_.getTextBounds(str, 0, 0, &x, &y, &w, &h);
+      fillRectWH(x, y > 0 ? y : -y, w, h, COLOR_RED);
+
+      String msg(str);
+      msg.concat(", ");
+      msg.concat("x:");
+      msg.concat(x);
+      msg.concat(", y:");
+      msg.concat(y);
+      msg.concat(", w:");
+      msg.concat(w);
+      msg.concat(", h:");
+      msg.concat(h);
+      display(msg, font, 1, x, y > 0 ? y : -y);
+      Utils::publish(msg);
+      delay(5000);
+   }
+   void boundsTests() {
+     for (int i = 0; i < 4; i++) {
+       oneFontTest(&FreeSans24pt7b, "FreeSans24pt7b", i + 1);
+     }
+     for (int i = 0; i < 4; i++) {
+       oneFontTest(&FreeSans24pt7b, "AghyZ", i + 1);
+     }
+     for (int i = 0; i < 9; i++) {
+       oneFontTest(&FreeSans24pt7b, String(i), 3);
+     }
+   }
+
 };
 OLEDWrapper* oledWrapper = nullptr;
 
@@ -183,6 +184,5 @@ void setup() {
 }
 
 void loop() {
-	oledWrapper->verticalFontTest(255, 256);
-	oledWrapper->horizontalFontTest(255, 256);
+	oledWrapper->boundsTests();
 }
