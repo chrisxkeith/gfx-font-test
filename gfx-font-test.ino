@@ -133,7 +133,7 @@ class OLEDWrapper {
       }
       clear();
     }
-    void oneFontTest(const GFXfont* font, String str, int textSize) {
+    void oneFontTestFixed(const GFXfont* font, String str, int textSize) {
       clear();
       display_.setFont(font);
       display_.setTextSize(textSize);
@@ -158,7 +158,17 @@ class OLEDWrapper {
       msg.concat(h);
       display(msg, font, 1, x, y > 0 ? y : -y);
       Utils::publish(msg);
+   }
+    void oneFontTest(const GFXfont* font, String str, int textSize) {
+      oneFontTestFixed(font, str, textSize);
       delay(5000);
+   }
+   bool didRun = false;
+   void singleTest() {
+      if (!didRun) {
+        didRun = true;
+        oneFontTestFixed(&FreeSans24pt7b, "FreeSans24pt7b", 1);
+      }
    }
    void boundsTests() {
      for (int i = 0; i < 4; i++) {
@@ -184,5 +194,5 @@ void setup() {
 }
 
 void loop() {
-	oledWrapper->boundsTests();
+	oledWrapper->singleTest();
 }
