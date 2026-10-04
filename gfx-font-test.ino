@@ -137,7 +137,6 @@ class OLEDWrapper {
       display_.setFont(font);
       display_.setTextSize(textSize);
       display_.getTextBounds(str, 0, 0, x, y, w, h);
-      // Does NOT include descenders. :(
     }
     void oneFontTestFixed(const GFXfont* font, String str, int textSize) {
       clear();
@@ -148,7 +147,7 @@ class OLEDWrapper {
       uint16_t  h;
 
       getTextBox(font, str, textSize, &x, &y, &w, &h);
-      display_.fillRect(x, 0, w < getWidth() ? w : getWidth(), y > 0 ? y : -y, COLOR_RED);
+      display_.fillRect(x, 0, w < getWidth() ? w : getWidth(), h, COLOR_RED);
 
       String msg(str);
       msg.concat(", ");
