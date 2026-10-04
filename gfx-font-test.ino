@@ -133,10 +133,11 @@ class OLEDWrapper {
       }
       clear();
     }
-    void getTextBox(const GFXfont* font, String str, int textSize, int16_t* x, int16_t* y, uint16_t* w, uint16_t* h) {
+    void getTextBox(const GFXfont* font, String str, int textSize, int16_t x0, int16_t y0,
+          int16_t* x, int16_t* y, uint16_t* w, uint16_t* h) {
       display_.setFont(font);
       display_.setTextSize(textSize);
-      display_.getTextBounds(str, 0, 0, x, y, w, h);
+      display_.getTextBounds(str, x0, y0, x, y, w, h);
     }
     void oneFontTestFixed(const GFXfont* font, String str, int textSize) {
       clear();
@@ -146,7 +147,7 @@ class OLEDWrapper {
       uint16_t  w;
       uint16_t  h;
 
-      getTextBox(font, str, textSize, &x, &y, &w, &h);
+      getTextBox(font, str, textSize, 0, 0, &x, &y, &w, &h);
       display_.fillRect(x, 0, w < getWidth() ? w : getWidth(), h, COLOR_RED);
 
       String msg(str);
@@ -169,13 +170,13 @@ class OLEDWrapper {
    }
    void fixedWidthTests() {
      uint16_t   lastWidth = 0;
-     for (int i = 0; i < 9; i++) {
+     for (int i = 0; i < 10; i++) {
       int16_t   x;
       int16_t   y;
       uint16_t  w;
       uint16_t  h;
 
-      getTextBox(&FreeSans24pt7b, String(i), 1, &x, &y, &w, &h);
+      getTextBox(&FreeSans24pt7b, String(i), 1, 0, 0, &x, &y, &w, &h);
       if ((lastWidth != 0) && (lastWidth != w)) {
         oneFontTest(&FreeSans24pt7b, String("digits not fixed width"), 1);
         return;
@@ -183,9 +184,36 @@ class OLEDWrapper {
       lastWidth = w;
     }
    }
+    void displayAtXY(const GFXfont* font, String previousString, String s, int textSize,
+                uint16_t x0, uint16_t y0, int backgroundColor) {
+      int16_t   x;
+      int16_t   y;
+      uint16_t  w;
+      uint16_t  h;
+
+      if (previousString.length() > 0) {
+        getTextBox(font, previousString, textSize, x0, y0, &x, &y, &w, &h);
+        display_.fillRect(x0, y0, w < getWidth() ? w : getWidth(), h, backgroundColor);
+      }
+      display_.setTextColor(COLOR_WHITE);
+      display_.setCursor(x0, y0 + h);
+      display_.setFont(font);
+      display_.setTextSize(textSize);
+      display_.print(s);
+    }
+   void fontLeftAroundPixelsTest() {
+      clear();
+      int vals[10] = {2, 0, 1, 3, 4, 5, 6, 7, 8, 9};
+      for (int i = 0; i < 10; i++) {
+        String previousString = i > 0 ? String(vals[i - 1]) : "";
+        displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, COLOR_RED);
+        delay(5000);
+      }
+   }
    void boundsTests() {
-     oneFontTest(&FreeSans24pt7b, "FreeSans24pt7b", 1);
+     // oneFontTest(&FreeSans24pt7b, "FreeSans24pt7b", 1);
      // fixedWidthTests();
+     fontLeftAroundPixelsTest();
   }
 };
 OLEDWrapper* oledWrapper = nullptr;
@@ -198,10 +226,6 @@ void setup() {
     Utils::publish("setup() : finished.");
 }
 
-bool runOnce = false;
 void loop() {
-	if (!runOnce) {
-		oledWrapper->boundsTests();
-		runOnce = true;
-	}
+	oledWrapper->boundsTests();
 }
