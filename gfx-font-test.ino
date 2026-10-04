@@ -168,8 +168,7 @@ class OLEDWrapper {
       oneFontTestFixed(font, str, textSize);
       delay(5000);
    }
-   void boundsTests() {
-     oneFontTest(&FreeSans24pt7b, "FreeSans24pt7b", 1);
+   void fixedWidthTests() {
      uint16_t   lastWidth = 0;
      for (int i = 0; i < 9; i++) {
       int16_t   x;
@@ -184,6 +183,10 @@ class OLEDWrapper {
       }
       lastWidth = w;
     }
+   }
+   void boundsTests() {
+     oneFontTest(&FreeSans24pt7b, "FreeSans24pt7b", 1);
+     // fixedWidthTests();
   }
 };
 OLEDWrapper* oledWrapper = nullptr;
@@ -196,6 +199,10 @@ void setup() {
     Utils::publish("setup() : finished.");
 }
 
+bool runOnce = false;
 void loop() {
-	oledWrapper->boundsTests();
+	if (!runOnce) {
+		oledWrapper->boundsTests();
+		runOnce = true;
+	}
 }
