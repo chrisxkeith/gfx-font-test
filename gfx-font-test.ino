@@ -185,7 +185,7 @@ class OLEDWrapper {
     }
    }
     void displayAtXY(const GFXfont* font, String previousString, String s, int textSize,
-                uint16_t x0, uint16_t y0, int backgroundColor) {
+                uint16_t x0, uint16_t y0, int textColor, int backgroundColor) {
       int16_t   x;
       int16_t   y;
       uint16_t  w;
@@ -195,6 +195,8 @@ class OLEDWrapper {
         getTextBox(font, previousString, textSize, x0, y0, &x, &y, &w, &h);
         display_.fillRect(x0, y0, w < getWidth() ? w : getWidth(), h, backgroundColor);
       }
+      getTextBox(font, s, textSize, x0, y0, &x, &y, &w, &h);
+      display_.setTextColor(textColor);
       display_.setTextColor(COLOR_WHITE);
       display_.setCursor(x0, y0 + h);
       display_.setFont(font);
@@ -203,10 +205,13 @@ class OLEDWrapper {
     }
    void fontLeftAroundPixelsTest() {
       clear();
-      int vals[10] = {2, 0, 1, 3, 4, 5, 6, 7, 8, 9};
+      int vals[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}; // eventually try different order(s) to see curved vs flat digit behavior
+      int colors[10] = {31, 29, 27, 25, 23, 21, 19, 17, 15}; // white -> 50% gray
       for (int i = 0; i < 10; i++) {
         String previousString = i > 0 ? String(vals[i - 1]) : "";
-        displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, COLOR_RED);
+        int color = display_.color565(colors[i], colors[i], colors[i]);
+        displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, color, COLOR_RED);
+        // Utils::waitForSerial("Just rendered: " + String(vals[i]));
         delay(5000);
       }
    }
