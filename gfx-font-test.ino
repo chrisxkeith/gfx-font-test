@@ -220,29 +220,38 @@ class OLEDWrapper {
      // fixedWidthTests();
      fontLeftAroundPixelsTest();
   }
-  bool runOnce = false;
-  void colorTest() {
-    if (runOnce) return;
-    runOnce = true;
+  void oneColorTest(int max) {
     clear();
     display_.startWrite();
     for (int x = 0; x < 8; x++) {
       for (int y = 0; y < 8; y++) {
         int index = (y * 8) + x;
-        int val = map(index, 0, 64, 0, 255);
+        int val = map(index, 0, 64, 0, max);
         int color = display_.color565(val, val, val);
         int rotatedX = y;
         int rotatedY = 7 - x;
-        int x0 = rotatedX * 64;
-        int y0 = rotatedY * 64;
-        for (int i = 0; i < 64; i++) {
-          for (int j = 0; j < 64; j++) {
+        int blockWidth = getHeight() / 8;
+        int x0 = rotatedX * blockWidth;
+        int y0 = rotatedY * blockWidth;
+        for (int i = 0; i < blockWidth; i++) {
+          for (int j = 0; j < blockWidth; j++) {
             display_.drawPixel(x0 + j, y0 + i, color);
           }
         }
       }
     }
     display_.endWrite();
+  }
+  bool runOnce = false;
+  void colorTest() {
+    if (runOnce) return;
+    runOnce = true;
+    clear();
+    int maxs[] = {255, 127, 63, 31};
+    for (int i = 0; i < 4; i++) {
+      oneColorTest(maxs[i]);
+      delay(5000);
+    }
   }
 };
 OLEDWrapper* oledWrapper = nullptr;
