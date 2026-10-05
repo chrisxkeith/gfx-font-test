@@ -197,7 +197,6 @@ class OLEDWrapper {
       }
       getTextBox(font, s, textSize, x0, y0, &x, &y, &w, &h);
       display_.setTextColor(textColor);
-      display_.setTextColor(COLOR_WHITE);
       display_.setCursor(x0, y0 + h);
       display_.setFont(font);
       display_.setTextSize(textSize);
@@ -206,20 +205,15 @@ class OLEDWrapper {
    void fontLeftAroundPixelsTest() {
       clear();
       int vals[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}; // eventually try different order(s) to see curved vs flat digit behavior
-      int colors[10] = {31, 29, 27, 25, 23, 21, 19, 17, 15}; // white -> 50% gray
       for (int i = 0; i < 10; i++) {
         String previousString = i > 0 ? String(vals[i - 1]) : "";
-        int color = display_.color565(colors[i], colors[i], colors[i]);
+        int rgbVal = 255 - (i * (127 + 63) / 10); // white -> 75% gray
+        int color = display_.color565(rgbVal, rgbVal, rgbVal);
         displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, color, COLOR_RED);
-        // Utils::waitForSerial("Just rendered: " + String(vals[i]));
-        delay(5000);
+        Utils::waitForSerial("Just rendered: " + String(vals[i]));
+        // delay(5000);
       }
    }
-   void boundsTests() {
-     // oneFontTest(&FreeSans24pt7b, "FreeSans24pt7b", 1);
-     // fixedWidthTests();
-     fontLeftAroundPixelsTest();
-  }
   void oneColorTest(int max) {
     clear();
     display_.startWrite();
@@ -265,5 +259,5 @@ void setup() {
 }
 
 void loop() {
-	oledWrapper->colorTest();
+	oledWrapper->fontLeftAroundPixelsTest();
 }
