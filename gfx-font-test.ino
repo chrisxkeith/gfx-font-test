@@ -257,6 +257,32 @@ displayAtXY: s:1 x0:0, y0:0 x:40, y:-256, w:88, h:264
         delay(5000);
       }
    }
+   // https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
+   // 0 x1:16, y1:-256, w:176, h:272
+   void directTest() {
+      clear();
+      int16_t  x1, y1;
+      uint16_t w, h;
+
+      display_.setFont(&FreeSans24pt7b);
+      display_.setTextSize(8);
+      display_.getTextBounds("0", 0, 0, &x1, &y1, &w, &h);
+      display_.setTextColor(display_.color565(255, 255, 255));
+      display_.setCursor(0, h);
+      display_.print("0");
+      delay(5000);
+      display_.fillRect(x1, y1, w, h, COLOR_RED);
+      String msg("0");
+      msg.concat(" x1:");
+      msg.concat(x1);
+      msg.concat(", y1:");
+      msg.concat(y1);
+      msg.concat(", w:");
+      msg.concat(w);
+      msg.concat(", h:");
+      msg.concat(h);
+      Utils::publish(msg);
+   }
   void oneColorTest(int max) {
     clear();
     display_.startWrite();
@@ -301,5 +327,5 @@ void setup() {
 }
 
 void loop() {
-	oledWrapper->fontLeftAroundPixelsTest();
+	oledWrapper->directTest();
 }
