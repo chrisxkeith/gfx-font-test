@@ -225,11 +225,6 @@ class OLEDWrapper {
         Utils::publish(msg);
       }
     }
-/*
-displayAtXY: s:0 x0:0, y0:0 x:16, y:-256, w:176, h:272
-displayAtXY: previousString:0 x0:0, y0:0 x:16, y:-256, w:176, h:272
-displayAtXY: s:1 x0:0, y0:0 x:40, y:-256, w:88, h:264
-*/
     bool runOnce = false;
     void fontLeftAroundPixelsTest() {
       if (runOnce) return;
