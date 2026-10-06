@@ -185,7 +185,7 @@ class OLEDWrapper {
     }
    }
     void displayAtXY(const GFXfont* font, String previousString, String s, int textSize,
-                uint16_t x0, uint16_t y0, int textColor, int backgroundColor) {
+                uint16_t x0, uint16_t y0, int textColor, int backgroundColor, boolean diagnose = false) {
       int16_t   x;
       int16_t   y;
       uint16_t  w;
@@ -194,6 +194,23 @@ class OLEDWrapper {
       if (previousString.length() > 0) {
         getTextBox(font, previousString, textSize, x0, y0, &x, &y, &w, &h);
         display_.fillRect(x0, y0, w < getWidth() ? w : getWidth(), h, backgroundColor);
+        if (diagnose) {
+          String msg("displayAtXY: previousString:");
+          msg.concat(previousString);
+          msg.concat(" x0:");
+          msg.concat(x0);
+          msg.concat(", y0:");
+          msg.concat(y0);
+          msg.concat(" x:");
+          msg.concat(x);
+          msg.concat(", y:");
+          msg.concat(y);
+          msg.concat(", w:");
+          msg.concat(w);
+          msg.concat(", h:");
+          msg.concat(h);
+          Utils::publish(msg);
+        }
       }
       getTextBox(font, s, textSize, x0, y0, &x, &y, &w, &h);
       display_.setTextColor(textColor);
@@ -201,11 +218,33 @@ class OLEDWrapper {
       display_.setFont(font);
       display_.setTextSize(textSize);
       display_.print(s);
+      if (diagnose) {
+        String msg("displayAtXY: s:");
+        msg.concat(s);
+        msg.concat(" x0:");
+        msg.concat(x0);
+        msg.concat(", y0:");
+        msg.concat(y0);
+        msg.concat(" x:");
+        msg.concat(x);
+        msg.concat(", y:");
+        msg.concat(y);
+        msg.concat(", w:");
+        msg.concat(w);
+        msg.concat(", h:");
+        msg.concat(h);
+        Utils::publish(msg);
+      }
     }
+/*
+displayAtXY: s:0 x0:0, y0:0 x:16, y:-256, w:176, h:272
+displayAtXY: previousString:0 x0:0, y0:0 x:16, y:-256, w:176, h:272
+displayAtXY: s:1 x0:0, y0:0 x:40, y:-256, w:88, h:264
+*/
     bool runOnce = false;
     void fontLeftAroundPixelsTest() {
       if (runOnce) return;
-      runOnce = true;
+      // runOnce = true;
       clear();
       int vals[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}; // eventually try different order(s) to see curved vs flat digit behavior
       for (int i = 0; i < 2; i++) {
@@ -213,9 +252,9 @@ class OLEDWrapper {
         // int rgbVal = 255 - (i * (127 + 63) / 10); // white -> 75% gray
         int rgbVal = 255 - (i * 127); // white -> 50% gray, 1 step
         int color = display_.color565(rgbVal, rgbVal, rgbVal);
-        displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, color, COLOR_RED);
+        displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, color, COLOR_RED, true);
         // Utils::waitForSerial("Just rendered: " + String(vals[i]));
-        // delay(5000);
+        delay(5000);
       }
    }
   void oneColorTest(int max) {
