@@ -85,7 +85,7 @@ class OLEDWrapper {
       display_.getTextBounds(string, x, y, x1, y1, w, h);
       // https://github.com/mrcodetastic/ESP32-HUB75-MatrixPanel-DMA/issues/43
       *w += (textSize * 2);
-      *h += (textSize * 2);
+      *h -= (textSize * 2);
     }
     void drawLine(int x0, int y0, int x1, int y1) {
       // Rotate not happening automatically?
@@ -239,6 +239,19 @@ class OLEDWrapper {
         delay(5000);
       }
    }
+   void stringsTest() {
+      clear();
+      const int N_ITEMS = 5;
+      String vals[N_ITEMS] = {"abc", "123", "xyz", "Ayz", ".;:"};
+      for (int i = 0; i < N_ITEMS; i++) {
+        String previousString = i > 0 ? String(vals[i - 1]) : "";
+        int rgbVal = 255 - (i * (127 + 63) / N_ITEMS); // white -> 75% gray
+        int color = display_.color565(rgbVal, rgbVal, rgbVal);
+        displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, color, COLOR_RED, true);
+        delay(5000);
+      }
+   }
+
    // https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
    // 0 x1:16, y1:-256, w:176, h:272
    void directTest() {
@@ -309,5 +322,5 @@ void setup() {
 }
 
 void loop() {
-	oledWrapper->fontLeftAroundPixelsTest();
+	oledWrapper->stringsTest();
 }
