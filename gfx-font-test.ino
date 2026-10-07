@@ -226,15 +226,13 @@ class OLEDWrapper {
       }
     }
     bool runOnce = false;
+    // Something wrong with the returned width of the digit '1', as well at heights
     void fontLeftAroundPixelsTest() {
-      if (runOnce) return;
-      // runOnce = true;
       clear();
       int vals[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}; // eventually try different order(s) to see curved vs flat digit behavior
-      for (int i = 0; i < 2; i++) {
+      for (int i = 0; i < 10; i++) {
         String previousString = i > 0 ? String(vals[i - 1]) : "";
-        // int rgbVal = 255 - (i * (127 + 63) / 10); // white -> 75% gray
-        int rgbVal = 255 - (i * 127); // white -> 50% gray, 1 step
+        int rgbVal = 255 - (i * (127 + 63) / 10); // white -> 75% gray
         int color = display_.color565(rgbVal, rgbVal, rgbVal);
         displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, color, COLOR_RED, true);
         // Utils::waitForSerial("Just rendered: " + String(vals[i]));
