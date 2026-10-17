@@ -77,14 +77,10 @@ class OLEDWrapper {
         getTextBox(font, previousString, textSize, x0, y0, &x, &y, &w, &h);
         display_.fillRect(x0, y0, w < getWidth() ? w : getWidth(), h, backgroundColor);
         if (diagnose) {
-          String msg("displayAtXY: previousString:");
-          msg.concat(previousString);
-          msg.concat(" x0:");          msg.concat(x0);
-          msg.concat(", y0:");         msg.concat(y0);
-          msg.concat(" x:");           msg.concat(x);
-          msg.concat(", y:");          msg.concat(y);
-          msg.concat(", w:");          msg.concat(w);
-          msg.concat(", h:");          msg.concat(h);
+          String msg(previousString);
+          msg.concat(" x0:"); msg.concat(x0); msg.concat(", y0:"); msg.concat(y0);
+          msg.concat(", x:"); msg.concat(x);  msg.concat(", y:");  msg.concat(y);
+          msg.concat(", w:"); msg.concat(w);  msg.concat(", h:");  msg.concat(h);
           Utils::publish(msg);
         }
       }
@@ -95,26 +91,22 @@ class OLEDWrapper {
       display_.setTextSize(textSize);
       display_.print(s);
       if (diagnose) {
-        String msg("displayAtXY: s:");
-        msg.concat(s);
-        msg.concat(" x0:");          msg.concat(x0);
-        msg.concat(", y0:");         msg.concat(y0);
-        msg.concat(" x:");           msg.concat(x);
-        msg.concat(", y:");          msg.concat(y);
-        msg.concat(", w:");          msg.concat(w);
-        msg.concat(", h:");          msg.concat(h);
+        String msg(s);
+        msg.concat(" x0:"); msg.concat(x0); msg.concat(", y0:"); msg.concat(y0);
+        msg.concat(", x:"); msg.concat(x);  msg.concat(", y:");  msg.concat(y);
+        msg.concat(", w:"); msg.concat(w);  msg.concat(", h:");  msg.concat(h);
         Utils::publish(msg);
       }
     }
    void stringsTest() {
       fillScreen(COLOR_BLUE);
-      const int N_ITEMS = 2;
-      String vals[N_ITEMS] = {"abc", "123" }; //, "xyz", "Ayz", ".;:"};
+      const int N_ITEMS = 5;
+      String vals[N_ITEMS] = {"abc", "123", "xyz", "Ayz", ".;:"};
       for (int i = 0; i < N_ITEMS; i++) {
         String previousString = i > 0 ? String(vals[i - 1]) : "";
         int rgbVal = 255 - (i * (127 + 63) / N_ITEMS); // white -> 75% gray
         int color = display_.color565(rgbVal, rgbVal, rgbVal);
-        displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, color, COLOR_RED, true);
+        displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 1, 0, 0, color, COLOR_RED, true);
         delay(5000);
       }
    }
@@ -131,7 +123,7 @@ void setup() {
 bool isFirstLoop = true;
 void loop() {
   if (isFirstLoop) {
-    isFirstLoop = false;
+//    isFirstLoop = false;
     oledWrapper->stringsTest();
   }
 }
