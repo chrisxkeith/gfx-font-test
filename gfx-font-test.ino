@@ -10,31 +10,14 @@ class Utils {
       Serial.println(s);
       lastPrintln = millis();
     }
-    static void waitForSerial(String s) {
-        delay(1000);
-        String msg(s);
-        msg.concat(", Press any character + Enter to continue: ");
-        Utils::publish(msg);
-        while (Serial.read() == -1) {
-          delay(100);
-        }
-    }
-    static String msToString(unsigned long ms) {
-      int totalSeconds = ms / 1000;
-      int secs = totalSeconds % 60;
-      int minutes = (totalSeconds / 60) % 60;
-      int hours = (totalSeconds / 60) / 60;
-    
-      char buf[100];
-      sprintf(buf, "%02u:%02u:%02u", hours, minutes, secs);
-      return String(buf);
-    }
 };
 unsigned long Utils::lastPrintln = 0;
 
 const int COLOR_WHITE = 0x65535;
 const int COLOR_BLACK = 0x0;
 const int COLOR_RED = 0xF800;
+const int COLOR_GREEN = 0x07E0;
+const int COLOR_BLUE = 0x1F;
 #include "Arduino_GigaDisplay_GFX.h"
 #include "Fonts/FreeSans18pt7b.h"
 #include "Fonts/FreeSans24pt7b.h"
@@ -47,7 +30,10 @@ class OLEDWrapper {
     const int DEFAULT_FONT_SIZE = 3;
   public:
     void clear() {
-      display_.fillScreen(COLOR_BLACK);
+      fillScreen(COLOR_BLACK);
+    }
+    void fillScreen(uint16_t color) {
+      display_.fillScreen(color);
     }
     void startup() {
       delay(1000);
@@ -55,37 +41,14 @@ class OLEDWrapper {
       clear();
       display_.setRotation(1);
     }
-    void display(String s, const GFXfont* font, int textSize, uint16_t x, uint16_t y) {
-      display_.setCursor(x, y);
-      display_.setFont(font);
-      display_.setTextSize(textSize);
-      display_.print(s);
-    }
-    void display(String s, int textSize, uint16_t x, uint16_t y) {
-      display(s, nullptr, textSize, x, y);
-    }
-    void display(String s) {
-      display(s, DEFAULT_FONT_SIZE, 10, 10);
-    }
-    void display(String s[], int nStrings) {
-      for (int i = 0; i < nStrings; i++) {
-        display(s[i], DEFAULT_FONT_SIZE, 10, 32 + (i * 32));
-      }
-    }
-    void setDrawColor(int color) {
-      currentColor = color;
-    }
-    void setFont(const GFXfont* font) {
-      display_.setFont(font);
-    }
     void getTextBox(const GFXfont* font, String string, int textSize, int16_t x0, int16_t y0,
                     int16_t* x, int16_t* y, uint16_t* w, uint16_t* h) {
       display_.setFont(font);
       display_.setTextSize(textSize);
       display_.getTextBounds(string, x0, y0, x, y, w, h);
       // https://github.com/mrcodetastic/ESP32-HUB75-MatrixPanel-DMA/issues/43
-      *w += (textSize * 2);
-      *h -= (textSize * 2);
+      *w += (textSize * 4);
+      *h += (textSize * 4);
     }
     void drawLine(int x0, int y0, int x1, int y1) {
       // Rotate not happening automatically?
@@ -103,76 +66,6 @@ class OLEDWrapper {
     int getWidth() {
       return display_.width();
     }
-    void dump() {
-      String s("OLEDWrapper: getHeight(): ");
-      s.concat(getHeight());
-      s.concat(", getWidth(): ");
-      s.concat(getWidth());
-      Utils::publish(s);
-    }
-    void verticalFontTest(int start, int finish) {
-      clear();
-      for (int y = start; y <= finish; y++) {
-        String s(y);
-        display(s, &FreeSans18pt7b, 1, 0, y);
-        delay(5000);
-      }
-      clear();
-    }
-    void horizontalFontTest(int start, int finish) {
-      clear();
-      for (int x = start; x <= finish; x++) {
-        String s(x);
-        display(s, &FreeSans18pt7b, 1, x, 40);
-        delay(5000);
-      }
-      clear();
-    }
-    void oneFontTestFixed(const GFXfont* font, String str, int textSize) {
-      clear();
-
-      int16_t   x;
-      int16_t   y;
-      uint16_t  w;
-      uint16_t  h;
-
-      getTextBox(font, str, textSize, 0, 0, &x, &y, &w, &h);
-      display_.fillRect(x, 0, w < getWidth() ? w : getWidth(), h, COLOR_RED);
-
-      String msg(str);
-      msg.concat(", ");
-      msg.concat("x:");
-      msg.concat(x);
-      msg.concat(", y:");
-      msg.concat(y);
-      msg.concat(", w:");
-      msg.concat(w);
-      msg.concat(", h:");
-      msg.concat(h);
-      display_.setCursor(x, y > 0 ? y : -y);
-      display_.print(msg);
-      Utils::publish(msg);
-   }
-    void oneFontTest(const GFXfont* font, String str, int textSize) {
-      oneFontTestFixed(font, str, textSize);
-      delay(5000);
-   }
-   void fixedWidthTests() {
-     uint16_t   lastWidth = 0;
-     for (int i = 0; i < 10; i++) {
-      int16_t   x;
-      int16_t   y;
-      uint16_t  w;
-      uint16_t  h;
-
-      getTextBox(&FreeSans24pt7b, String(i), 1, 0, 0, &x, &y, &w, &h);
-      if ((lastWidth != 0) && (lastWidth != w)) {
-        oneFontTest(&FreeSans24pt7b, String("digits not fixed width"), 1);
-        return;
-      }
-      lastWidth = w;
-    }
-   }
     void displayAtXY(const GFXfont* font, String previousString, String s, int textSize,
                 uint16_t x0, uint16_t y0, int textColor, int backgroundColor, boolean diagnose = false) {
       int16_t   x;
@@ -186,18 +79,12 @@ class OLEDWrapper {
         if (diagnose) {
           String msg("displayAtXY: previousString:");
           msg.concat(previousString);
-          msg.concat(" x0:");
-          msg.concat(x0);
-          msg.concat(", y0:");
-          msg.concat(y0);
-          msg.concat(" x:");
-          msg.concat(x);
-          msg.concat(", y:");
-          msg.concat(y);
-          msg.concat(", w:");
-          msg.concat(w);
-          msg.concat(", h:");
-          msg.concat(h);
+          msg.concat(" x0:");          msg.concat(x0);
+          msg.concat(", y0:");         msg.concat(y0);
+          msg.concat(" x:");           msg.concat(x);
+          msg.concat(", y:");          msg.concat(y);
+          msg.concat(", w:");          msg.concat(w);
+          msg.concat(", h:");          msg.concat(h);
           Utils::publish(msg);
         }
       }
@@ -210,39 +97,19 @@ class OLEDWrapper {
       if (diagnose) {
         String msg("displayAtXY: s:");
         msg.concat(s);
-        msg.concat(" x0:");
-        msg.concat(x0);
-        msg.concat(", y0:");
-        msg.concat(y0);
-        msg.concat(" x:");
-        msg.concat(x);
-        msg.concat(", y:");
-        msg.concat(y);
-        msg.concat(", w:");
-        msg.concat(w);
-        msg.concat(", h:");
-        msg.concat(h);
+        msg.concat(" x0:");          msg.concat(x0);
+        msg.concat(", y0:");         msg.concat(y0);
+        msg.concat(" x:");           msg.concat(x);
+        msg.concat(", y:");          msg.concat(y);
+        msg.concat(", w:");          msg.concat(w);
+        msg.concat(", h:");          msg.concat(h);
         Utils::publish(msg);
       }
     }
-    bool runOnce = false;
-    // Something wrong with the returned width of the digit '1', as well at heights
-    void fontLeftAroundPixelsTest() {
-      clear();
-      int vals[10] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9}; // eventually try different order(s) to see curved vs flat digit behavior
-      for (int i = 0; i < 10; i++) {
-        String previousString = i > 0 ? String(vals[i - 1]) : "";
-        int rgbVal = 255 - (i * (127 + 63) / 10); // white -> 75% gray
-        int color = display_.color565(rgbVal, rgbVal, rgbVal);
-        displayAtXY(&FreeSans24pt7b, previousString, String(vals[i]), 8, 0, 0, color, COLOR_RED, true);
-        // Utils::waitForSerial("Just rendered: " + String(vals[i]));
-        delay(5000);
-      }
-   }
    void stringsTest() {
-      clear();
-      const int N_ITEMS = 5;
-      String vals[N_ITEMS] = {"abc", "123", "xyz", "Ayz", ".;:"};
+      fillScreen(COLOR_BLUE);
+      const int N_ITEMS = 2;
+      String vals[N_ITEMS] = {"abc", "123" }; //, "xyz", "Ayz", ".;:"};
       for (int i = 0; i < N_ITEMS; i++) {
         String previousString = i > 0 ? String(vals[i - 1]) : "";
         int rgbVal = 255 - (i * (127 + 63) / N_ITEMS); // white -> 75% gray
@@ -252,75 +119,19 @@ class OLEDWrapper {
       }
    }
 
-   // https://learn.adafruit.com/adafruit-gfx-graphics-library/using-fonts
-   // 0 x1:16, y1:-256, w:176, h:272
-   void directTest() {
-      clear();
-      int16_t  x1, y1;
-      uint16_t w, h;
-
-      display_.setFont(&FreeSans24pt7b);
-      display_.setTextSize(8);
-      display_.getTextBounds("0", 0, 0, &x1, &y1, &w, &h);
-      display_.setTextColor(display_.color565(255, 255, 255));
-      display_.setCursor(0, h);
-      display_.print("0");
-      delay(5000);
-      display_.fillRect(x1, y1, w, h, COLOR_RED);
-      String msg("0");
-      msg.concat(" x1:");
-      msg.concat(x1);
-      msg.concat(", y1:");
-      msg.concat(y1);
-      msg.concat(", w:");
-      msg.concat(w);
-      msg.concat(", h:");
-      msg.concat(h);
-      Utils::publish(msg);
-   }
-  void oneColorTest(int max) {
-    clear();
-    display_.startWrite();
-    for (int x = 0; x < 8; x++) {
-      for (int y = 0; y < 8; y++) {
-        int index = (y * 8) + x;
-        int val = map(index, 0, 64, 0, max);
-        int color = display_.color565(val, val, val);
-        int rotatedX = y;
-        int rotatedY = 7 - x;
-        int blockWidth = getHeight() / 8;
-        int x0 = rotatedX * blockWidth;
-        int y0 = rotatedY * blockWidth;
-        for (int i = 0; i < blockWidth; i++) {
-          for (int j = 0; j < blockWidth; j++) {
-            display_.drawPixel(x0 + j, y0 + i, color);
-          }
-        }
-      }
-    }
-    display_.endWrite();
-  }
-  void colorTest() {
-    if (runOnce) return;
-    runOnce = true;
-    clear();
-    int maxs[] = {255, 127, 63, 31};
-    for (int i = 0; i < 4; i++) {
-      oneColorTest(maxs[i]);
-      delay(5000);
-    }
-  }
 };
 OLEDWrapper* oledWrapper = nullptr;
 
 void setup() {
     Serial.begin(115200);
-    Utils::publish("setup() : started.");
     oledWrapper = new OLEDWrapper();
     oledWrapper->startup();
-    Utils::publish("setup() : finished.");
 }
 
+bool isFirstLoop = true;
 void loop() {
-	oledWrapper->stringsTest();
+  if (isFirstLoop) {
+    isFirstLoop = false;
+    oledWrapper->stringsTest();
+  }
 }
