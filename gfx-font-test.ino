@@ -78,11 +78,11 @@ class OLEDWrapper {
     void setFont(const GFXfont* font) {
       display_.setFont(font);
     }
-    void getTextBounds(String string, const GFXfont* font, int textSize,
-                          int16_t x, int16_t y, int16_t* x1, int16_t* y1, uint16_t* w, uint16_t* h) {
+    void getTextBox(const GFXfont* font, String string, int textSize, int16_t x0, int16_t y0,
+                    int16_t* x, int16_t* y, uint16_t* w, uint16_t* h) {
       display_.setFont(font);
       display_.setTextSize(textSize);
-      display_.getTextBounds(string, x, y, x1, y1, w, h);
+      display_.getTextBounds(string, x0, y0, x, y, w, h);
       // https://github.com/mrcodetastic/ESP32-HUB75-MatrixPanel-DMA/issues/43
       *w += (textSize * 2);
       *h -= (textSize * 2);
@@ -136,7 +136,7 @@ class OLEDWrapper {
       uint16_t  w;
       uint16_t  h;
 
-      getTextBounds(str, font, textSize, 0, 0, &x, &y, &w, &h);
+      getTextBox(font, str, textSize, 0, 0, &x, &y, &w, &h);
       display_.fillRect(x, 0, w < getWidth() ? w : getWidth(), h, COLOR_RED);
 
       String msg(str);
@@ -165,7 +165,7 @@ class OLEDWrapper {
       uint16_t  w;
       uint16_t  h;
 
-      getTextBounds(String(i), &FreeSans24pt7b, 1, 0, 0, &x, &y, &w, &h);
+      getTextBox(&FreeSans24pt7b, String(i), 1, 0, 0, &x, &y, &w, &h);
       if ((lastWidth != 0) && (lastWidth != w)) {
         oneFontTest(&FreeSans24pt7b, String("digits not fixed width"), 1);
         return;
@@ -181,7 +181,7 @@ class OLEDWrapper {
       uint16_t  h;
 
       if (previousString.length() > 0) {
-        getTextBounds(previousString, font, textSize, x0, y0, &x, &y, &w, &h);
+        getTextBox(font, previousString, textSize, x0, y0, &x, &y, &w, &h);
         display_.fillRect(x0, y0, w < getWidth() ? w : getWidth(), h, backgroundColor);
         if (diagnose) {
           String msg("displayAtXY: previousString:");
@@ -201,7 +201,7 @@ class OLEDWrapper {
           Utils::publish(msg);
         }
       }
-      getTextBounds(s, font, textSize, x0, y0, &x, &y, &w, &h);
+      getTextBox(font, s, textSize, x0, y0, &x, &y, &w, &h);
       display_.setTextColor(textColor);
       display_.setCursor(x0, y0 + h);
       display_.setFont(font);
